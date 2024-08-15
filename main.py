@@ -4,21 +4,20 @@ from dotenv import load_dotenv
 from discord import Intents, Client, Message
 import atexit
 import globs
+import modules_list
 
 load_dotenv()
-DISCORD_TOKEN: Final[str] = os.getenv("DISCORD_TOKEN")
+DISCORD_TOKEN: Final[str | None] = os.getenv("DISCORD_TOKEN")
 
 intents: Intents = Intents.default()
 intents.message_content = True
 client: Client = Client(intents=intents)
 
-import modules
-
 async def send_msg(msg: Message) -> None:
 	if not msg.content:
 		print("WARNING: Message is empty most likely due to improper intents")
 
-	for module in modules.modules:
+	for module in modules_list.modules:
 		try:
 			res = await module.get_res(msg=msg)
 		except Exception as exception:
@@ -47,11 +46,17 @@ async def on_message(msg: Message) -> None:
 	await send_msg(msg=msg)
 
 def main() -> None:
+	if DISCORD_TOKEN is None:
+		print("ERROR: DISCORD_TOKEN does not exist!")
+		return
+
 	client.run(token=DISCORD_TOKEN)
+
 if __name__ == "__main__":
 	main()
 
 def exit_handler():
   globs.cursor.close()
   globs.connection.close()
+
 atexit.register(exit_handler)
