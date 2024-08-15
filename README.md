@@ -11,6 +11,8 @@ The `Module` class has 1 constructor and 2 overridable methods:
 
 The database used for storing everything is `PostgresSQL` which is also my favorite database :D
 
+For the postgres database ofc give the permissions needed for the modules to do whatever they need to do and make sure to practice proper SQL hygiene.
+
 ## Examples
 - `ping.py`: Responds to `!ping` with `pong!` and reacting both messages to demonstrate the basics.
 - `counter.py`: A basic counter bot that takes the first found number, keeps tracks of records (it responds to wrong counts with ❌, record breaking counts with ☑️, and regular valid counts with ✅) by storing the current `count` (The next number needed), `last_responder` (The last person to respond), and `record` (The record that's been gotten to). This module also uses Postgres to avoid save it when the bot is rebooted.
