@@ -4,7 +4,8 @@ import globs
 import re 
 import random
 from enum import Enum
-from money import MoneyModule 
+from money import MoneyModule
+import typing  
 
 MoneyModule = MoneyModule() 
 
@@ -42,42 +43,48 @@ class RouletteModule(module.Module):
         class Error(Enum): 
             ERROR = "ERROR" 
         
+        class Bet(): 
+            self.bet_type = "" 
+            self.player_bet = []
+            self.wager = 0 
+
         user_id = usr_msg.author.id 
-        if user_id not in MoneyModule.data: MoneyModule.update_balance(user_id, 1000)
+        if user_id not in MoneyModule.data: MoneyModule.update_balance(user_id, MoneyModule.STARTING_BALANCE)
         player_balance = MoneyModule.data[user_id]
         self.profit = 0
+        bet = Bet() 
 
-        def parse_bet(message):
+        def parse_bet(message: str) -> Bet:
         ## Get information about bet type, player call, and wager while also checking to make sure that the values won't break the roulette wheel.      
             valid_types =  {"straight", "split", "street", "corner", "sixline", "redblack", "dozen", "column", "oddeven", "highlow"}  
             valid_calls =  {"red", "black", "column1", "column2", "column3", "first", "second", "third", "even", "odd", "high", "low"} 
             unpacked_bet = message.lower().split()
             bet_type = unpacked_bet[1] 
-            if bet_type not in valid_types: return Error.ERROR.value, None, None   
+            if bet_type not in valid_types: raise ValueError    
             player_bet = unpacked_bet[2].split(",")
             for i in range(len(player_bet)):  
                 if player_bet[i] == "00": player_bet[i] = -1 
                 else:
                     try: 
                         player_bet[i] = int(player_bet[i]) 
-                        if player_bet[i] < -1 or player_bet[i] > 36: return Error.ERROR.value, None, None   
+                        if player_bet[i] < -1 or player_bet[i] > 36: raise ValueError    
                     except ValueError:
-                        if player_bet[i] not in valid_calls: return Error.ERROR.value, None, None 
-                        else: pass  
-            try: 
+                        if player_bet[i] not in valid_calls: raise ValueError  
+                        else: pass   
                 wager = int(unpacked_bet[3])
-                if wager > player_balance or wager < 0: return Error.ERROR.value, None, None 
-            except ValueError: return Error.ERROR.value, None, None  
-            return bet_type, player_bet, wager     
+                if wager > player_balance or wager < 0: raise ValueError  
+            bet.bet_type = bet_type
+            bet.player_bet = player_bet 
+            bet.wager = wager 
 
         def is_adjacent(numbers): 
             return all(abs(numbers[i] - numbers[i+1]) == 1 for i in range(len(numbers) - 1)) 
 
         def roulette(player_bet_statement):
-            bet_type, player_bet, wager = parse_bet(player_bet_statement)
-            ## Checking for errors returned by parse_bet(message) to see if the roulette should abort or continue  
-            if bet_type == Error.ERROR.value: return Error.ERROR.value, None     
-            player_bet_frozenset = frozenset(player_bet) 
+             ## Checking for errors returned by parse_bet(message) to see if the roulette should abort or continue 
+            try: parse_bet(player_bet_statement) 
+            except ValueError: return Error.ERROR.value, None      
+            player_bet_frozenset = frozenset(bet.player_bet) 
 
             ## Building the roulette table and valid plays for streets, splits, and sixlines 
             RED_NUMS = {number for number in {1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36}} 
@@ -101,56 +108,56 @@ class RouletteModule(module.Module):
             def result_match(player_bet_frozenset, int_spin_result): 
                 return int_spin_result in player_bet_frozenset
 
-            loss_value = wager * -1 
+            loss_value = -wager 
 
             ## Handling for each bet type 
             match bet_type: 
                 case BetTypes.STRAIGHT.value: 
-                    if int_spin_result in player_bet: winnings = wager * 34 
+                    if int_spin_result in bet.player_bet: winnings = wager * 34 
                     else: winnings = loss_value
                 case BetTypes.SPLIT.value: 
-                    if len(player_bet) != 2 or player_bet_frozenset not in VALID_SPLITS: winnings = Error.ERROR.value
+                    if len(bet.player_bet) != 2 or player_bet_frozenset not in VALID_SPLITS: winnings = Error.ERROR.value
                     elif result_match(player_bet_frozenset, int_spin_result) == False: winnings = loss_value   
                     else: winnings = wager * 16 
                 case BetTypes.STREET.value: 
-                    if len(player_bet) != 3 or player_bet_frozenset not in VALID_STREETS: winnings = Error.ERROR.value
+                    if len(bet.player_bet) != 3 or player_bet_frozenset not in VALID_STREETS: winnings = Error.ERROR.value
                     elif result_match(player_bet_frozenset, int_spin_result) == False: winnings = loss_value     
                     else: winnings = wager * 10 
                 case BetTypes.CORNER.value: 
-                    if len(player_bet) != 4 or is_adjacent(player_bet) == False: winnings = Error.ERROR.value 
+                    if len(bet.player_bet) != 4 or is_adjacent(bet.player_bet) == False: winnings = Error.ERROR.value 
                     elif result_match(player_bet_frozenset, int_spin_result) == False: winnings = loss_value   
                     else: winnings = wager * 7 
                 case BetTypes.SIXLINE.value: 
-                    if len(player_bet) != 6 or player_bet_frozenset not in VALID_SIXLINES: winnings = Error.ERROR.value
+                    if len(bet.player_bet) != 6 or player_bet_frozenset not in VALID_SIXLINES: winnings = Error.ERROR.value
                     elif result_match(player_bet_frozenset, int_spin_result) == False: winnings = loss_value    
                     else: winnings = wager * 4 
                 case BetTypes.REDBLACK.value: ##Obligatory 34 joke 
-                    if int_spin_result in RED_NUMS and player_bet[0] == BetCalls.RED.value: winnings = wager 
-                    elif int_spin_result in BLACK_NUMS and player_bet[0] == BetCalls.BLACK.value: winnings = wager 
+                    if int_spin_result in RED_NUMS and bet.player_bet[0] == BetCalls.RED.value: winnings = wager 
+                    elif int_spin_result in BLACK_NUMS and bet.player_bet[0] == BetCalls.BLACK.value: winnings = wager 
                     else: winnings = 0 
                 case BetTypes.DOZEN.value:
-                    if int_spin_result in DOZEN_1_NUMS and player_bet[0] == BetCalls.DOZEN1.value: winnings = wager  
-                    elif int_spin_result in DOZEN_2_NUMS and player_bet[0] == BetCalls.DOZEN2.value: winnings = wager  
-                    elif int_spin_result in DOZEN_3_NUMS and player_bet[0] == BetCalls.DOZEN3.value: winnings = wager  
+                    if int_spin_result in DOZEN_1_NUMS and bet.player_bet[0] == BetCalls.DOZEN1.value: winnings = wager  
+                    elif int_spin_result in DOZEN_2_NUMS and bet.player_bet[0] == BetCalls.DOZEN2.value: winnings = wager  
+                    elif int_spin_result in DOZEN_3_NUMS and bet.player_bet[0] == BetCalls.DOZEN3.value: winnings = wager  
                     else: winnings = loss_value 
                 case BetTypes.COLUMN.value:
-                    if int_spin_result in COLUMN_1_NUMS and player_bet[0] == BetCalls.COLUMN1.value: winnings = wager  
-                    elif int_spin_result in COLUMN_2_NUMS and player_bet[0] == BetCalls.COLUMN2.value: winnings = wager 
-                    elif int_spin_result in COLUMN_3_NUMS and player_bet[0] == BetCalls.COLUMN3.value: winnings = wager 
+                    if int_spin_result in COLUMN_1_NUMS and bet.player_bet[0] == BetCalls.COLUMN1.value: winnings = wager  
+                    elif int_spin_result in COLUMN_2_NUMS and bet.player_bet[0] == BetCalls.COLUMN2.value: winnings = wager 
+                    elif int_spin_result in COLUMN_3_NUMS and bet.player_bet[0] == BetCalls.COLUMN3.value: winnings = wager 
                     else: winnings = loss_value 
                 case BetTypes.ODDEVEN.value: 
-                    if int_spin_result in range(1,36) and int_spin_result % 2 == 0 and player_bet[0] == BetCalls.EVEN.value: winnings = wager
-                    elif int_spin_result in range(1,36) and int_spin_result % 2 != 0 and player_bet[0] == BetCalls.ODD.value: winnings = wager
+                    if int_spin_result in range(1,36) and int_spin_result % 2 == 0 and bet.player_bet[0] == BetCalls.EVEN.value: winnings = wager
+                    elif int_spin_result in range(1,36) and int_spin_result % 2 != 0 and bet.player_bet[0] == BetCalls.ODD.value: winnings = wager
                     else: winnings = loss_value
                 case BetTypes.HIGHLOW.value: 
-                    if int_spin_result in range(1,18) and player_bet[0] == BetCalls.LOW.value: winnings = wager
-                    elif int_spin_result in range(19,36) and player_bet[0] == BetCalls.HIGH.value: winnings = wager
+                    if int_spin_result in range(1,18) and bet.player_bet[0] == BetCalls.LOW.value: winnings = wager
+                    elif int_spin_result in range(19,36) and bet.player_bet[0] == BetCalls.HIGH.value: winnings = wager
                     else: winnings = loss_value 
             return str_spin_result, winnings 
         
         str_spin_result, winnings = roulette(msg.content)
         ## Checks if roulette threw an error, if not continues with updating information and printing result to Discord channel 
-        if str_spin_result == Error.ERROR.value or winnings == Error.ERROR.value: return f"lmfao"
+        if str_spin_result == Error.ERROR.value or winnings == Error.ERROR.value: return "lmfao" ##f"lmfao" 
         else: 
             self.profit = winnings     
             return f"The roulette wheel landed on {str_spin_result}, giving you a profit of {self.profit}"
