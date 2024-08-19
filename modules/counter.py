@@ -1,5 +1,5 @@
 import module
-from typing import Dict
+from typing import Dict, Union
 from discord import Message
 import re
 import globs
@@ -24,7 +24,7 @@ class CounterModule(module.Module):
 		for row in dataset:
 			self.counts[row[0]] = Count(*row[1:])
 
-	async def get_res(self, msg: Message) -> str | None:
+	async def get_res(self, msg: Message) -> Union[str, None]:
 		nullable_num = re.search(r'^\d+$', msg.content)
 		if nullable_num == None:
 			return None
@@ -44,7 +44,7 @@ class CounterModule(module.Module):
 
 		return ""
 	
-	async def after_res(self, usr_msg: Message, bot_msg: Message | None) -> None:
+	async def after_res(self, usr_msg: Message, bot_msg: Union[Message, None]) -> None:
 		count = self.counts[usr_msg.channel.id]
 		if bot_msg is None:
 			count.count += 1

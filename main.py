@@ -1,4 +1,4 @@
-from typing import Final
+from typing import Final, Union
 import os
 from dotenv import load_dotenv
 from discord import Intents, Client, Message
@@ -7,7 +7,7 @@ import globs
 import modules_list
 
 load_dotenv()
-DISCORD_TOKEN: Final[str | None] = os.getenv("DISCORD_TOKEN")
+DISCORD_TOKEN: Final[Union[str, None]] = os.getenv("DISCORD_TOKEN")
 
 intents: Intents = Intents.default()
 intents.message_content = True

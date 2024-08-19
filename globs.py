@@ -1,14 +1,14 @@
-from typing import Final
+from typing import Final, Union
 import os
 import psycopg
 from dotenv import load_dotenv
 
 load_dotenv()
-POSTGRES_DBNAME: Final[str | None] = os.getenv("POSTGRES_DBNAME")
-POSTGRES_USER: Final[str | None] = os.getenv("POSTGRES_USER")
-POSTGRES_PASSWORD: Final[str | None] = os.getenv("POSTGRES_PASSWORD")
-POSTGRES_HOST: Final[str | None] = os.getenv("POSTGRES_HOST")
-POSTGRES_PORT: Final[str | None] = os.getenv("POSTGRES_PORT")
+POSTGRES_DBNAME: Final[Union[str, None]] = os.getenv("POSTGRES_DBNAME")
+POSTGRES_USER: Final[Union[str, None]] = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD: Final[Union[str, None]] = os.getenv("POSTGRES_PASSWORD")
+POSTGRES_HOST: Final[Union[str, None]] = os.getenv("POSTGRES_HOST")
+POSTGRES_PORT: Final[Union[str, None]] = os.getenv("POSTGRES_PORT")
 
 connection = psycopg.connect(
 		dbname=POSTGRES_DBNAME,
