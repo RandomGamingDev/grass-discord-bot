@@ -125,71 +125,70 @@ class RouletteModule(module.Module):
             loss_value = -bet.wager
 
             ## Handling for each bet type
-            match bet.bet_type:
-                case BetTypes.STRAIGHT.value:
-                    if len(bet.player_bet) != 1:
-                        self.profit = Error.ERROR.value
-                    elif int_spin_result in bet.player_bet:
-                        self.profit = bet.wager * 34
-                    else: self.profit = loss_value
-                case BetTypes.SPLIT.value:
-                    if len(bet.player_bet) != 2 or player_bet_frozenset not in valid_splits:
-                        self.profit = Error.ERROR.value
-                    elif not result_match(player_bet_frozenset, int_spin_result):
-                        self.profit = loss_value
-                    else: self.profit = bet.wager * 16
-                case BetTypes.STREET.value:
-                    if len(bet.player_bet) != 3 or player_bet_frozenset not in valid_streets:
-                        self.profit = Error.ERROR.value
-                    elif not result_match(player_bet_frozenset, int_spin_result):
-                        self.profit = loss_value
-                    else: self.profit = bet.wager * 10
-                case BetTypes.CORNER.value:
-                    if len(bet.player_bet) != 4 or not is_adjacent(bet.player_bet):
-                        self.profit = Error.ERROR.value
-                    elif not result_match(player_bet_frozenset, int_spin_result):
-                        self.profit = loss_value
-                    else: self.profit = bet.wager * 7
-                case BetTypes.SIXLINE.value:
-                    if len(bet.player_bet) != 6 or player_bet_frozenset not in valid_sixlines:
-                        self.profit = Error.ERROR.value
-                    elif not result_match(player_bet_frozenset, int_spin_result):
-                        self.profit = loss_value
-                    else: self.profit = bet.wager * 4
-                case BetTypes.REDBLACK.value:
-                    if int_spin_result in red_nums and bet.player_bet[0] == BetCalls.RED.value:
-                        self.profit = bet.wager
-                    elif int_spin_result in black_nums and bet.player_bet[0] == BetCalls.BLACK.value:
-                        self.profit = bet.wager
-                    else: self.profit = loss_value
-                case BetTypes.DOZEN.value:
-                    if int_spin_result in dozen_1_nums and bet.player_bet[0] == BetCalls.DOZEN1.value:
-                        self.profit = bet.wager
-                    elif int_spin_result in dozen_2_nums and bet.player_bet[0] == BetCalls.DOZEN2.value:
-                        self.profit = bet.wager
-                    elif int_spin_result in dozen_3_nums and bet.player_bet[0] == BetCalls.DOZEN3.value:
-                        self.profit = bet.wager
-                    else: self.profit = loss_value
-                case BetTypes.COLUMN.value:
-                    if int_spin_result in column_1_nums and bet.player_bet[0] == BetCalls.COLUMN1.value:
-                        self.profit = bet.wager
-                    elif int_spin_result in column_2_nums and bet.player_bet[0] == BetCalls.COLUMN2.value:
-                        self.profit = bet.wager
-                    elif int_spin_result in column_3_nums and bet.player_bet[0] == BetCalls.COLUMN3.value:
-                        self.profit = bet.wager
-                    else: self.profit = loss_value
-                case BetTypes.ODDEVEN.value:
-                    if int_spin_result in range (1,36) and int_spin_result % 2 == 0 and bet.player_bet[0] == BetCalls.EVEN.value:
-                        self.profit = bet.wager
-                    elif int_spin_result in range (1,36) and int_spin_result %2 != 0 and bet.player_bet[0] == BetCalls.ODD.value:
-                        self.profit = bet.wager
-                    else: self.profit = loss_value
-                case BetTypes.HIGHLOW.value:
-                    if int_spin_result in range(1,18) and bet.player_bet[0] == BetCalls.LOW.value:
-                        self.profit = bet.wager
-                    if int_spin_result in range(19,36) and bet.player_bet[0] == BetCalls.HIGH.value:
-                        self.profit = bet.wager
-                    else: self.profit = loss_value
+            if bet.bet_type == BetTypes.STRAIGHT.value:
+                if len(bet.player_bet) != 1:
+                    self.profit = Error.ERROR.value
+                elif int_spin_result in bet.player_bet:
+                    self.profit = bet.wager * 34
+                else: self.profit = loss_value
+            elif bet.bet_type == BetTypes.SPLIT.value:
+                if len(bet.player_bet) != 2 or player_bet_frozenset not in valid_splits:
+                    self.profit = Error.ERROR.value
+                elif not result_match(player_bet_frozenset, int_spin_result):
+                    self.profit = loss_value
+                else: self.profit = bet.wager * 16
+            elif bet.bet_type == BetTypes.STREET.value:
+                if len(bet.player_bet) != 3 or player_bet_frozenset not in valid_streets:
+                    self.profit = Error.ERROR.value
+                elif not result_match(player_bet_frozenset, int_spin_result):
+                    self.profit = loss_value
+                else: self.profit = bet.wager * 10
+            elif bet.bet_type == BetTypes.CORNER.value:
+                if len(bet.player_bet) != 4 or not is_adjacent(bet.player_bet):
+                    self.profit = Error.ERROR.value
+                elif not result_match(player_bet_frozenset, int_spin_result):
+                    self.profit = loss_value
+                else: self.profit = bet.wager * 7
+            elif bet.bet_type == BetTypes.SIXLINE.value:
+                if len(bet.player_bet) != 6 or player_bet_frozenset not in valid_sixlines:
+                    self.profit = Error.ERROR.value
+                elif not result_match(player_bet_frozenset, int_spin_result):
+                    self.profit = loss_value
+                else: self.profit = bet.wager * 4
+            elif bet.bet_type == BetTypes.REDBLACK.value:
+                if int_spin_result in red_nums and bet.player_bet[0] == BetCalls.RED.value:
+                    self.profit = bet.wager
+                elif int_spin_result in black_nums and bet.player_bet[0] == BetCalls.BLACK.value:
+                    self.profit = bet.wager
+                else: self.profit = loss_value
+            elif bet.bet_type == BetTypes.DOZEN.value:
+                if int_spin_result in dozen_1_nums and bet.player_bet[0] == BetCalls.DOZEN1.value:
+                    self.profit = bet.wager
+                elif int_spin_result in dozen_2_nums and bet.player_bet[0] == BetCalls.DOZEN2.value:
+                    self.profit = bet.wager
+                elif int_spin_result in dozen_3_nums and bet.player_bet[0] == BetCalls.DOZEN3.value:
+                    self.profit = bet.wager
+                else: self.profit = loss_value
+            elif bet.bet_type == BetTypes.COLUMN.value:
+                if int_spin_result in column_1_nums and bet.player_bet[0] == BetCalls.COLUMN1.value:
+                    self.profit = bet.wager
+                elif int_spin_result in column_2_nums and bet.player_bet[0] == BetCalls.COLUMN2.value:
+                    self.profit = bet.wager
+                elif int_spin_result in column_3_nums and bet.player_bet[0] == BetCalls.COLUMN3.value:
+                    self.profit = bet.wager
+                else: self.profit = loss_value
+            elif bet.bet_type == BetTypes.ODDEVEN.value:
+                if int_spin_result in range (1,36) and int_spin_result % 2 == 0 and bet.player_bet[0] == BetCalls.EVEN.value:
+                    self.profit = bet.wager
+                elif int_spin_result in range (1,36) and int_spin_result %2 != 0 and bet.player_bet[0] == BetCalls.ODD.value:
+                    self.profit = bet.wager
+                else: self.profit = loss_value
+            elif bet.bet_type == BetTypes.HIGHLOW.value:
+                if int_spin_result in range(1,18) and bet.player_bet[0] == BetCalls.LOW.value:
+                    self.profit = bet.wager
+                if int_spin_result in range(19,36) and bet.player_bet[0] == BetCalls.HIGH.value:
+                    self.profit = bet.wager
+                else: self.profit = loss_value
             return
         ## Runs and checks if roulette threw an error, if not updates database and prints message
         roulette(msg.content)
