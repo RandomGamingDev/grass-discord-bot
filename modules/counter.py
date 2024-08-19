@@ -24,17 +24,17 @@ class CounterModule(module.Module):
 		for row in dataset:
 			self.counts[row[0]] = Count(*row[1:])
 
-	async def get_res(self, msg: Message) -> str:
-		nullable_num = re.search(r'\d+', msg.content)
+	async def get_res(self, msg: Message) -> str | None:
+		nullable_num = re.search(r'^\d+$', msg.content)
 		if nullable_num == None:
-			return ""
+			return None
 		num = nullable_num.group(0)
 		
 		if msg.channel.id not in self.counts:
 			self.counts[msg.channel.id] = Count()
 			globs.cursor.execute(
-					f"INSERT INTO counter (channel, count, last_responder, record) VALUES (%s, 1, -1, 0);",
-					(str(msg.channel.id)))
+				f"INSERT INTO counter (channel, count, last_responder, record) VALUES (%s, 1, -1, 0);",
+				[str(msg.channel.id)])
 
 		count = self.counts[msg.channel.id]
 		if int(num) != count.count:
@@ -44,7 +44,7 @@ class CounterModule(module.Module):
 
 		return ""
 	
-	async def after_res(self, usr_msg: Message, bot_msg: Message | None) -> str:
+	async def after_res(self, usr_msg: Message, bot_msg: Message | None) -> None:
 		count = self.counts[usr_msg.channel.id]
 		if bot_msg is None:
 			count.count += 1
@@ -61,8 +61,8 @@ class CounterModule(module.Module):
 
 		# Update the database with the new values
 		globs.cursor.execute(
-				f"UPDATE counter SET count=%s, last_responder=%s, record=%s WHERE channel=%s;",
-				(str(count.count), str(count.last_responder), str(count.record), str(usr_msg.channel.id)))
+			f"UPDATE counter SET count=%s, last_responder=%s, record=%s WHERE channel=%s;",
+			[str(count.count), str(count.last_responder), str(count.record), str(usr_msg.channel.id)])
 		globs.connection.commit()
 
-		return ""
+		return None
