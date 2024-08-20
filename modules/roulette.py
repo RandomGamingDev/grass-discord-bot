@@ -47,9 +47,6 @@ class RouletteModule(module.Module):
             ODD = "odd"
             HIGH = "high"
             LOW = "low"
-        class Error(Enum):
-            """Error value to be checked by roulette()"""
-            ERROR = "ERROR"
         class Bet():
             """Object to contain player bet information from parse_bet()"""
             def __init__(self, bet_type, player_bet, wager):
@@ -64,8 +61,8 @@ class RouletteModule(module.Module):
         def parse_bet(message: str) -> Bet:
             """Retrieves player bet type, player bet call, and player's wager to store in a Bet object"""
             unpacked_bet = message.lower().split()
-            valid_types = {"straight", "split", "street", "corner", "sixline", "redblack", "dozen", "column", "oddeven", "highlow"}
-            valid_calls = {"red", "black", "column1", "column2", "column3", "first", "second", "third", "even", "odd", "high", "low"}
+            valid_types = {member.value for member in BetTypes}
+            valid_calls = {member.value for member in BetCalls}
             bet_type = unpacked_bet[1]
             if bet_type not in valid_types:
                 raise ValueError
@@ -92,24 +89,21 @@ class RouletteModule(module.Module):
         def roulette(player_bet_statement) -> None:
             """Simulates the roulette game, returns result and profit"""
             ## Validation of player's bet statement
-            try:
-                bet = parse_bet(player_bet_statement)
-                player_bet_frozenset = frozenset(bet.player_bet)
-            except ValueError:
-                self.profit = Error.ERROR.value
-                return
+            bet = parse_bet(player_bet_statement)
+            player_bet_frozenset = frozenset(bet.player_bet)
+
             ## Creation of roulette board
             red_nums = {number for number in {1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36}}
             black_nums = {number for number in {2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35}}
             column_1_nums = {(1 + 3*i) for i in range (12)}
             column_2_nums = {(2 + 3*i) for i in range (12)}
             column_3_nums = {(3 + 3*i) for i in range (12)}
-            dozen_1_nums = {i for i in range(1,12)}
-            dozen_2_nums = {i for i in range (13,24)}
-            dozen_3_nums = {i for i in range (25,36)}
+            dozen_1_nums = {i for i in range(1,13)}
+            dozen_2_nums = {i for i in range (13,25)}
+            dozen_3_nums = {i for i in range (25,37)}
             valid_streets = {frozenset({i, i+1, i+2}) for i in range (1,34,3)}
             valid_sixlines = {frozenset({i, i+1, i+2, i+3, i+4, i+5}) for i in range (1,31,3)}
-            valid_splits = {frozenset({i, i+1}) for i in range(1, 36)} | {frozenset({i, -1}) for i in range(1, 37)}
+            valid_splits = {frozenset({i, i+1}) for i in range(-1, 36)}
 
             ## Spins random number- int_spin_result for checking against and str_spin_result for printing
             int_spin_result = random.randint(-1,36)
@@ -127,31 +121,31 @@ class RouletteModule(module.Module):
             ## Handling for each bet type
             if bet.bet_type == BetTypes.STRAIGHT.value:
                 if len(bet.player_bet) != 1:
-                    self.profit = Error.ERROR.value
+                    raise ValueError
                 elif int_spin_result in bet.player_bet:
                     self.profit = bet.wager * 34
                 else: self.profit = loss_value
             elif bet.bet_type == BetTypes.SPLIT.value:
                 if len(bet.player_bet) != 2 or player_bet_frozenset not in valid_splits:
-                    self.profit = Error.ERROR.value
+                    raise ValueError
                 elif not result_match(player_bet_frozenset, int_spin_result):
                     self.profit = loss_value
                 else: self.profit = bet.wager * 16
             elif bet.bet_type == BetTypes.STREET.value:
                 if len(bet.player_bet) != 3 or player_bet_frozenset not in valid_streets:
-                    self.profit = Error.ERROR.value
+                    raise ValueError
                 elif not result_match(player_bet_frozenset, int_spin_result):
                     self.profit = loss_value
                 else: self.profit = bet.wager * 10
             elif bet.bet_type == BetTypes.CORNER.value:
                 if len(bet.player_bet) != 4 or not is_adjacent(bet.player_bet):
-                    self.profit = Error.ERROR.value
+                    raise ValueError
                 elif not result_match(player_bet_frozenset, int_spin_result):
                     self.profit = loss_value
                 else: self.profit = bet.wager * 7
             elif bet.bet_type == BetTypes.SIXLINE.value:
                 if len(bet.player_bet) != 6 or player_bet_frozenset not in valid_sixlines:
-                    self.profit = Error.ERROR.value
+                    raise ValueError
                 elif not result_match(player_bet_frozenset, int_spin_result):
                     self.profit = loss_value
                 else: self.profit = bet.wager * 4
@@ -178,23 +172,25 @@ class RouletteModule(module.Module):
                     self.profit = bet.wager
                 else: self.profit = loss_value
             elif bet.bet_type == BetTypes.ODDEVEN.value:
-                if int_spin_result in range (1,36) and int_spin_result % 2 == 0 and bet.player_bet[0] == BetCalls.EVEN.value:
+                if int_spin_result in range (1,37) and int_spin_result % 2 == 0 and bet.player_bet[0] == BetCalls.EVEN.value:
                     self.profit = bet.wager
-                elif int_spin_result in range (1,36) and int_spin_result %2 != 0 and bet.player_bet[0] == BetCalls.ODD.value:
+                elif int_spin_result in range (1,37) and int_spin_result %2 != 0 and bet.player_bet[0] == BetCalls.ODD.value:
                     self.profit = bet.wager
                 else: self.profit = loss_value
             elif bet.bet_type == BetTypes.HIGHLOW.value:
-                if int_spin_result in range(1,18) and bet.player_bet[0] == BetCalls.LOW.value:
+                if int_spin_result in range(1,19) and bet.player_bet[0] == BetCalls.LOW.value:
                     self.profit = bet.wager
-                if int_spin_result in range(19,36) and bet.player_bet[0] == BetCalls.HIGH.value:
+                if int_spin_result in range(19,37) and bet.player_bet[0] == BetCalls.HIGH.value:
                     self.profit = bet.wager
                 else: self.profit = loss_value
             return
         ## Runs and checks if roulette threw an error, if not updates database and prints message
-        roulette(msg.content)
-        if self.profit == Error.ERROR.value:
+        try:
+            roulette(msg.content)
+            return f"The Roulette wheel landed on {self.result}, giving you a profit of {self.profit}"
+        except ValueError:
+            self.profit = ""
             return "lmfao"
-        return f"The Roulette wheel landed on {self.result}, giving you a profit of {self.profit}"
 
     async def after_res(self, usr_msg=Message, bot_msg=Message) -> None:
         """Updates database if result was valid"""
