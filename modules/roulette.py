@@ -54,7 +54,7 @@ class RouletteModule(module.Module):
                 self.player_bet = player_bet
                 self.wager = wager
         temp_id = msg.author.id
-        temp_balance = EconomyModule.data.get(temp_id, EconomyModule.STARTING_BALANCE)
+        temp_balance = EconomyModule.get_balance(temp_id)
         ## Force refresh of balance and id
         self.player_balance = temp_balance
         self.user_id = temp_id

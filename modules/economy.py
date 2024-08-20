@@ -12,19 +12,21 @@ class EconomyModule(module.Module):
         globs.cursor.execute("SELECT * FROM economy;")
         self.data_table = globs.cursor.fetchall()
         self.data: dict[int, float] = {user_id: user_balance for user_id, user_balance in self.data_table}
-    STARTING_BALANCE = 100000
+        self.STARTING_BALANCE = 100000
 
     def refresh_data(self) -> None:
         globs.cursor.execute("SELECT * FROM economy;")
         self.data_table = globs.cursor.fetchall()
         self.data = {user_id: user_balance for user_id, user_balance in self.data_table}
 
-    def get_balance(self, userid: int) -> float:
+    def get_balance(self, user_id: int) -> float:
         self.refresh_data()
-        return self.data.get(userid, 0)
+        if user_id not in self.data:
+            self.update_balance(user_id, self.STARTING_BALANCE)
+        return self.data.get(user_id)
 
-    def update_balance(self, userid: int, amount: float) -> None:
-        globs.cursor.execute("INSERT INTO economy (userid, balance) VALUES (%s, %s) ON CONFLICT (userid) DO UPDATE SET balance = EXCLUDED.balance;", (userid, amount))
+    def update_balance(self, user_id: int, amount: float) -> None:
+        globs.cursor.execute("INSERT INTO economy (userid, balance) VALUES (%s, %s) ON CONFLICT (userid) DO UPDATE SET balance = EXCLUDED.balance;", (user_id, amount))
         globs.connection.commit()
         self.refresh_data()
 
