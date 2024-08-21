@@ -3,10 +3,8 @@ import random
 from enum import Enum
 import globs
 from discord import Intents, Client, Message, TextChannel
-from modules.economy import EconomyModule
+from shared.economydata import EconomyInstance
 import module
-
-EconomyModule = EconomyModule()
 
 class RouletteModule(module.Module):
     """Runs roulette module, returns roulette spin result and profit"""
@@ -54,7 +52,7 @@ class RouletteModule(module.Module):
                 self.player_bet = player_bet
                 self.wager = wager
         temp_id = msg.author.id
-        temp_balance = EconomyModule.get_balance(temp_id)
+        temp_balance = EconomyInstance.get_balance(temp_id)
         ## Force refresh of balance and id
         self.player_balance = temp_balance
         self.user_id = temp_id
@@ -196,5 +194,5 @@ class RouletteModule(module.Module):
         """Updates database if result was valid"""
         if isinstance(self.profit, int):
             updated_balance = self.player_balance + self.profit
-            EconomyModule.update_balance(self.user_id, updated_balance)
+            EconomyInstance.update_balance(self.user_id, updated_balance)
         else: return
