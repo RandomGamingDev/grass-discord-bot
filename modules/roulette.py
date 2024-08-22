@@ -80,10 +80,10 @@ class RouletteModule(module.Module):
             if wager > self.player_balance or wager < 0:
                 raise ValueError
             bet = Bet(bet_type, player_bet, wager)
-            return bet
+            return { "content": bet }
         def is_adjacent(numbers) -> bool:
             """Checks to see if the player's bet contains subsequent numbers for a corner bet"""
-            return all(abs(numbers[i] - numbers[i+1]) == 1 for i in range(len(numbers) - 1))
+            return { "content": all(abs(numbers[i] - numbers[i+1]) == 1 for i in range(len(numbers) - 1)) }
         def roulette(player_bet_statement) -> None:
             """Simulates the roulette game, returns result and profit"""
             ## Validation of player's bet statement
@@ -112,7 +112,7 @@ class RouletteModule(module.Module):
 
             def result_match(player_bet_frozenset, int_spin_result) -> bool:
                 """Checks for presence of the result within a player's numerical bet"""
-                return int_spin_result in player_bet_frozenset
+                return { "content": int_spin_result in player_bet_frozenset }
 
             loss_value = -bet.wager
 
@@ -185,10 +185,10 @@ class RouletteModule(module.Module):
         ## Runs and checks if roulette threw an error, if not updates database and prints message
         try:
             roulette(msg.content)
-            return f"The Roulette wheel landed on {self.result}, giving you a profit of {self.profit}"
+            return { "content": f"The Roulette wheel landed on {self.result}, giving you a profit of {self.profit}" }
         except ValueError:
             self.profit = ""
-            return "lmfao"
+            return { "content": "lmfao" }
 
     async def after_res(self, usr_msg=Message, bot_msg=Message) -> None:
         """Updates database if result was valid"""

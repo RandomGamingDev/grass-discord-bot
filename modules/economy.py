@@ -1,4 +1,4 @@
-import typing
+from typing import Union
 from enum import Enum
 from discord import Intents, Client, Message, TextChannel
 import globs
@@ -7,7 +7,7 @@ from shared.economydata import EconomyInstance
 
 class EconomyModule(module.Module):
     """Handles generic economy based commands"""
-    async def get_res(self, msg:Message) -> str:
+    async def get_res(self, msg:Message) -> Union[dict, None]:
         class CommandTypes(Enum):
             """All valid economy command types"""
             BALANCE = "balance"
@@ -18,5 +18,5 @@ class EconomyModule(module.Module):
             return
         if CommandTypes.BALANCE.value in msg_set:
             user_balance = EconomyInstance.get_balance(user_id)
-            return f"Balance: {user_balance}"
+            return { "content": f"Balance: {user_balance}" }
         return

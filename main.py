@@ -28,8 +28,8 @@ async def send_msg(msg: Message) -> None:
 	if res == None: # If no bots replyed
 		return
 	reply = None
-	if res != "": # If the bot claimed the response and had a message to send
-		reply = await msg.reply(res)
+	if res["content"] != "": # If the bot claimed the response and had a message to send
+		reply = await msg.reply(**res)
 	try:
 		await module.after_res(usr_msg=msg, bot_msg=reply)
 	except Exception as exception:

@@ -24,7 +24,7 @@ class CounterModule(module.Module):
 		for row in dataset:
 			self.counts[row[0]] = Count(*row[1:])
 
-	async def get_res(self, msg: Message) -> Union[str, None]:
+	async def get_res(self, msg: Message) -> Union[dict, None]:
 		nullable_num = re.search(r'^\d+$', msg.content)
 		if nullable_num == None:
 			return None
@@ -38,11 +38,11 @@ class CounterModule(module.Module):
 
 		count = self.counts[msg.channel.id]
 		if int(num) != count.count:
-			return f"❌ {msg.author.mention} messed up! The next number was {count.count}, not {num}! ❌"
+			return { "content": f"❌ {msg.author.mention} messed up! The next number was {count.count}, not {num}! ❌" }
 		if msg.author.id == count.last_responder:
-			return f"❌ {msg.author.mention} messed up! You can't count twice in a row! ❌"
+			return { "content": f"❌ {msg.author.mention} messed up! You can't count twice in a row! ❌" }
 
-		return ""
+		return {}
 	
 	async def after_res(self, usr_msg: Message, bot_msg: Union[Message, None]) -> None:
 		count = self.counts[usr_msg.channel.id]
