@@ -80,10 +80,10 @@ class RouletteModule(module.Module):
             if wager > self.player_balance or wager < 0:
                 raise ValueError
             bet = Bet(bet_type, player_bet, wager)
-            return { "content": bet }
+            return bet
         def is_adjacent(numbers) -> bool:
             """Checks to see if the player's bet contains subsequent numbers for a corner bet"""
-            return { "content": all(abs(numbers[i] - numbers[i+1]) == 1 for i in range(len(numbers) - 1)) }
+            return all(abs(numbers[i] - numbers[i+1]) == 1 for i in range(len(numbers) - 1))
         def roulette(player_bet_statement) -> None:
             """Simulates the roulette game, returns result and profit"""
             ## Validation of player's bet statement
