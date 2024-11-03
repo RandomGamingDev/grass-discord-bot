@@ -42,7 +42,7 @@ class CounterModule(module.Module):
 		if msg.author.id == count.last_responder:
 			return { "content": f"❌ {msg.author.mention} messed up! You can't count twice in a row! ❌" }
 
-		return {}
+		return { "content": "" }
 	
 	async def after_res(self, usr_msg: Message, bot_msg: Union[Message, None]) -> None:
 		count = self.counts[usr_msg.channel.id]
